@@ -16,14 +16,14 @@ type Config struct {
 	//   * pg-database
 	//   * pg-user
 	//   * pg-password
-	DirConfig *string
+	DirConfig string
 	// PKIConfig, if set and exists, points to the k8s tls secrets.  Client certificate and secret is optional however
 	// at least the certificate authority is expected.
 	// Format:
 	//   * ca.crt (require) Certificate authority common
 	//   * tls.crt - Certificate this client should authorize as
 	//   * tls.key - Key for the client
-	PKIConfig *string
+	PKIConfig string
 }
 
 func Load(c Config, from fs.SubFS) (*pgx.ConnConfig, error) {
@@ -31,14 +31,14 @@ func Load(c Config, from fs.SubFS) (*pgx.ConnConfig, error) {
 	 * Load base configuration
 	 */
 	var connectionConfig *pgx.ConnConfig
-	if c.DirConfig == nil {
+	if len(c.DirConfig) > 0 {
 		if conn, err := pgx.ParseConfig(""); err == nil {
 			connectionConfig = conn
 		} else {
 			return nil, err
 		}
 	} else {
-		configDir, err := from.Sub(*c.DirConfig)
+		configDir, err := from.Sub(c.DirConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -51,8 +51,8 @@ func Load(c Config, from fs.SubFS) (*pgx.ConnConfig, error) {
 	/*
 	 * Load PKI
 	 */
-	if c.PKIConfig != nil {
-		pkiDir, err := from.Sub(*c.PKIConfig)
+	if len(c.PKIConfig) > 0 {
+		pkiDir, err := from.Sub(c.PKIConfig)
 		if err != nil {
 			return nil, err
 		}
